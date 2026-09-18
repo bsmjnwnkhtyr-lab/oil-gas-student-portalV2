@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بوابة الطالب | هندسة النفط والغاز – جامعة الزاوية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold:    #D4A017;
+  --gold-lt: #F5C842;
+  --oil:     #080C10;
+  --steel:   #1C2A3A;
+  --petrol:  #0E4D6E;
+  --accent:  #1B7FAD;
+  --card:    #111820;
+  --card2:   #16202B;
+  --border:  rgba(212,160,23,0.2);
+  --border2: rgba(27,127,173,0.2);
+  --text:    #E8E0D0;
+  --muted:   #6A80A0;
+  --done-bg: linear-gradient(135deg,#0B3D5A,#1B7FAD);
+  --done-glow: 0 0 18px rgba(27,127,173,0.45);
+  --radius:  16px;
+}
+*, *::before, *::after{box-sizing:border-box;margin:0;padding:0}
+
+.btn-edit-name {
+  background: transparent;
+  border: 1px solid rgba(212,160,23,0.3);
+  color: var(--gold-lt);
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: all 0.2s;
+  vertical-align: middle;
+}
+.btn-edit-name:hover {
+  background: var(--gold);
+  color: #080C10;
+  border-color: var(--gold);
+}
+
+/* ══════════════════════════════
+   WELCOME SCREEN
+══════════════════════════════ */
+#welcome-screen {
+  position:fixed;inset:0;z-index:9999;
+  background: radial-gradient(ellipse 120% 80% at 50% -10%, #0E4D6E22 0%, transparent 60%), #080C10;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:0;
+  transition:opacity .5s, transform .5s;
+}
+#welcome-screen.hide { opacity:0; transform:scale(1.04); pointer-events:none; }
+
+.welcome-logo {
+  width:90px;height:90px;
+  background:var(--gold);border-radius:22px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cairo',sans-serif;font-size:2.2rem;font-weight:900;color:#080C10;
+  box-shadow:0 0 40px rgba(212,160,23,.5);
+  margin-bottom:28px;
+  animation: logoIn .7s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes logoIn{from{opacity:0;transform:scale(.5) rotate(-10deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+
+.welcome-title {
+  font-family:'Cairo',sans-serif;font-size:clamp(1.4rem,4vw,2rem);font-weight:900;
+  color:var(--gold);text-align:center;line-height:1.2;
+  animation:fadeUp .6s .15s both;
+}
+.welcome-sub {
+  font-family:'Tajawal',sans-serif;font-size:.95rem;color:var(--muted);
+  text-align:center;margin-top:6px;
+  animation:fadeUp .6s .25s both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+.welcome-form {
+  margin-top:36px;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  animation:fadeUp .6s .35s both;
+  width:min(400px,90vw);
+}
+.welcome-form label {
+  font-family:'Cairo',sans-serif;font-size:.9rem;font-weight:600;
+  color:var(--text);align-self:flex-start;
+}
+.welcome-form input {
+  width:100%;padding:14px 18px;
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:12px;color:var(--text);
+  font-family:'Cairo',sans-serif;font-size:1rem;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+  text-align:right;
+}
+.welcome-form input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,160,23,.12);}
+.welcome-form input::placeholder{color:var(--muted);}
+.welcome-btn {
+  width:100%;padding:15px;border:none;border-radius:12px;
+  background:var(--gold);color:#080C10;
+  font-family:'Cairo',sans-serif;font-size:1rem;font-weight:900;
+  cursor:pointer;transition:.2s;
+  box-shadow:0 0 24px rgba(212,160,23,.35);
+}
+.welcome-btn:hover{background:var(--gold-lt);box-shadow:0 0 32px rgba(212,160,23,.5);}
+.welcome-note{font-size:.75rem;color:var(--muted);text-align:center;}
+
+/* ══════════════════════════════
+   BUBBLES
+══════════════════════════════ */
+.bubble{position:fixed;bottom:-60px;border-radius:50%;
+  background:rgba(27,127,173,.1);
+  animation:rise linear infinite;z-index:0;pointer-events:none;}
+@keyframes rise{to{transform:translateY(-115vh) scale(1.5);opacity:0}}
+
+/* ══════════════════════════════
+   LAYOUT SHELL
+══════════════════════════════ */
+body{background:var(--oil);color:var(--text);
+  font-family:'Tajawal',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+#app{opacity:0;transition:opacity .5s;}
+#app.visible{opacity:1;}
+
+/* ══════════════════════════════
+   HEADER
+══════════════════════════════ */
+.site-header{
+  position:sticky;top:0;z-index:100;
+  background:linear-gradient(180deg,#0a0f14 0%,rgba(10,15,20,.97) 100%);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(16px);
+  padding:0 clamp(14px,4vw,44px);
+}
+.header-inner{
+  max-width:1200px;margin:auto;
+  display:flex;align-items:center;gap:16px;
+  padding:14px 0;
+}
+.logo-sm{
+  width:44px;height:44px;flex-shrink:0;
+  background:var(--gold);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cairo',sans-serif;font-size:1.1rem;font-weight:900;color:#080C10;
+  box-shadow:0 0 16px rgba(212,160,23,.35);
+}
+.header-text{flex:1;}
+.header-text h1{
+  font-family:'Cairo',sans-serif;
+  font-size:clamp(.9rem,2.2vw,1.2rem);font-weight:900;color:var(--gold);line-height:1.2;
+}
+.header-text .student-name{font-size:.78rem;color:var(--muted);margin-top:1px;}
+.header-text .student-name span{color:var(--gold-lt);font-weight:600;}
+
+.header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.rank-pill{
+  background:var(--steel);border:1px solid var(--border);
+  border-radius:999px;padding:6px 14px;
+  font-size:.75rem;font-weight:600;color:var(--gold-lt);white-space:nowrap;
+}
+.btn{
+  border-radius:999px;padding:8px 18px;
+  font-family:'Tajawal',sans-serif;font-size:.82rem;font-weight:700;
+  cursor:pointer;transition:.2s;border:none;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn-pdf{background:var(--gold);color:#080C10;box-shadow:0 0 12px rgba(212,160,23,0.3);}
+.btn-pdf:hover{background:var(--gold-lt);transform:translateY(-1px);}
+.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--muted);}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+
+/* ══════════════════════════════
+   HERO STATS
+══════════════════════════════ */
+.hero{
+  position:relative;z-index:1;
+  max-width:1200px;margin:28px auto 0;
+  padding:0 clamp(14px,4vw,44px);
+  display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;
+}
+
+.ring-wrap{
+  position:relative;width:160px;height:160px;flex-shrink:0;
+}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:10;}
+.ring-fill{
+  fill:none;stroke-width:10;stroke-linecap:round;
+  stroke:url(#ringGrad);
+  stroke-dasharray:439.82;stroke-dashoffset:439.82;
+  transition:stroke-dashoffset .9s cubic-bezier(.4,0,.2,1);
+  filter:drop-shadow(0 0 6px rgba(27,127,173,.7));
+}
+.ring-center{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.ring-pct{
+  font-family:'Cairo',sans-serif;font-size:2.2rem;font-weight:900;
+  color:var(--gold);line-height:1;
+}
+.ring-lbl{font-size:.65rem;color:var(--muted);margin-top:2px;}
+
+.hero-right{display:flex;flex-direction:column;gap:16px;}
+
+.stat-row{display:flex;gap:14px;flex-wrap:wrap;}
+.stat-card{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:14px;padding:16px 20px;flex:1;min-width:110px;
+}
+.stat-card .sv{
+  font-family:'Cairo',sans-serif;font-size:1.8rem;font-weight:900;
+  color:var(--gold);line-height:1;
+}
+.stat-card .sl{font-size:.72rem;color:var(--muted);margin-top:4px;}
+.stat-card.blue .sv{color:var(--accent);}
+.stat-card.silver .sv{color:#A0BECF;}
+
+.bar-card{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:16px 20px;}
+.bar-label-row{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-bottom:10px;}
+.bar-track{background:rgba(255,255,255,.05);height:8px;border-radius:99px;overflow:hidden;}
+.bar-fill{
+  height:100%;border-radius:99px;width:0%;
+  background:linear-gradient(90deg,var(--petrol),var(--accent) 55%,var(--gold));
+  transition:width .8s cubic-bezier(.4,0,.2,1);
+  box-shadow:0 0 10px rgba(27,127,173,.5);
+}
+
+/* ══════════════════════════════
+   MOTIVATION BANNER
+══════════════════════════════ */
+.motivation{
+  position:relative;z-index:1;
+  max-width:1200px;margin:18px auto 0;
+  padding:0 clamp(14px,4vw,44px);
+}
+.motivation-inner{
+  background:linear-gradient(120deg,rgba(14,77,110,.35),rgba(27,127,173,.15));
+  border:1px solid var(--border2);border-radius:14px;
+  padding:14px 20px;
+  display:flex;align-items:center;gap:12px;
+}
+.motivation-icon{font-size:1.4rem;flex-shrink:0;}
+.motivation-text{font-family:'Cairo',sans-serif;font-size:.88rem;color:var(--text);line-height:1.5;}
+.motivation-text strong{color:var(--gold-lt);}
+
+/* ══════════════════════════════
+   FILTER BAR
+══════════════════════════════ */
+.filter-bar{
+  position:relative;z-index:1;
+  max-width:1200px;margin:22px auto 0;
+  padding:0 clamp(14px,4vw,44px);
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+}
+.filter-btn{
+  padding:7px 16px;border-radius:999px;
+  font-family:'Cairo',sans-serif;font-size:.78rem;font-weight:600;
+  cursor:pointer;transition:.2s;border:1px solid rgba(255,255,255,.1);
+  background:transparent;color:var(--muted);
+}
+.filter-btn.active{background:var(--gold);color:#080C10;border-color:var(--gold);}
+.filter-btn:hover:not(.active){border-color:var(--gold);color:var(--gold);}
+.search-wrap{flex:1;min-width:160px;position:relative;}
+.search-input{
+  width:100%;padding:7px 14px 7px 36px;
+  background:var(--card2);border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;color:var(--text);
+  font-family:'Cairo',sans-serif;font-size:.8rem;
+  outline:none;transition:border-color .2s;text-align:right;
+}
+.search-input:focus{border-color:var(--accent);}
+.search-input::placeholder{color:var(--muted);}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem;pointer-events:none;}
+
+/* ══════════════════════════════
+   COURSES GRID
+══════════════════════════════ */
+.content-wrap{
+  position:relative;z-index:1;
+  max-width:1200px;margin:18px auto 120px;
+  padding:0 clamp(14px,4vw,44px);
+}
+.grid-hdr{
+  display:flex;align-items:center;gap:12px;margin-bottom:16px;
+}
+.grid-hdr-title{
+  font-family:'Cairo',sans-serif;font-size:.88rem;font-weight:700;color:var(--muted);
+}
+.grid-hdr-count{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:999px;padding:3px 10px;
+  font-size:.72rem;color:var(--gold);font-weight:600;
+}
+.grid-hdr-line{flex:1;height:1px;background:var(--border);}
+
+.courses-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
+  gap:10px;
+}
+
+.course-card{
+  background:var(--card2);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:var(--radius);
+  padding:15px 14px 12px;
+  cursor:pointer;
+  transition:border-color .2s,transform .2s,box-shadow .2s,opacity .3s;
+  position:relative;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;user-select:none;
+}
+.course-card::before{
+  content:'';position:absolute;inset:0;border-radius:var(--radius);
+  background:var(--done-bg);opacity:0;transition:opacity .25s;
+}
+.course-card:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.5);}
+.course-card.done{border-color:rgba(27,127,173,.55);box-shadow:var(--done-glow);}
+.course-card.done::before{opacity:1;}
+.course-card.done .cn{color:#fff;}
+.course-card.done .cu{color:rgba(255,255,255,.65);}
+.course-card.done .ck{opacity:1;transform:scale(1);}
+.course-card.hidden{opacity:0;pointer-events:none;height:0;padding:0;margin:0;border:none;overflow:hidden;}
+
+.ck{
+  position:absolute;top:10px;left:10px;
+  width:20px;height:20px;background:rgba(255,255,255,.2);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.62rem;color:#fff;
+  opacity:0;transform:scale(.4);transition:opacity .25s,transform .25s;z-index:1;
+}
+.cn{
+  font-family:'Cairo',sans-serif;font-size:.83rem;font-weight:700;
+  color:var(--text);line-height:1.4;
+  position:relative;z-index:1;display:block;margin-top:2px;
+}
+.cu{
+  display:block;font-size:.67rem;color:var(--gold);
+  margin-top:6px;position:relative;z-index:1;
+}
+.ctype{
+  position:absolute;top:10px;right:10px;
+  font-size:.58rem;background:rgba(212,160,23,.12);
+  color:var(--gold);border-radius:4px;padding:2px 6px;
+  font-family:'Cairo',sans-serif;font-weight:600;z-index:1;
+}
+.course-card.done .ctype{background:rgba(255,255,255,.15);color:rgba(255,255,255,.7);}
+
+.empty-state{
+  grid-column:1/-1;text-align:center;
+  padding:60px 20px;color:var(--muted);
+  font-family:'Cairo',sans-serif;font-size:.95rem;
+}
+
+/* ══════════════════════════════
+   DEVELOPER FOOTER BAR
+══════════════════════════════ */
+.dev-footer-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(90deg, #080C10, #16202B, #080C10);
+  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  text-align: center;
+  z-index: 998;
+  font-family: 'Cairo', sans-serif;
+  font-size: 0.82rem;
+  color: var(--muted);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.8);
+}
+.dev-footer-bar span {
+  color: var(--gold);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 10px rgba(212,160,23,0.3);
+}
+
+/* ══════════════════════════════
+   TOAST & CONFETTI
+══════════════════════════════ */
+.confetti-piece{
+  position:fixed;top:-10px;pointer-events:none;z-index:9998;
+  border-radius:2px;animation:fall linear forwards;
+}
+@keyframes fall{
+  0%  {transform:translateY(0) rotate(0deg);opacity:1;}
+  100%{transform:translateY(100vh) rotate(720deg);opacity:0;}
+}
+
+.toast{
+  position:fixed;bottom:60px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--steel);border:1px solid var(--border);border-radius:12px;
+  padding:12px 22px;font-size:.85rem;font-weight:600;color:var(--gold-lt);
+  opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;z-index:999;white-space:nowrap;
+  box-shadow:0 8px 30px rgba(0,0,0,.6);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ══════════════════════════════
+   🖨️ PRINT / PDF EXPORT DESIGN (تنسيق الورقة المريح والمسطر)
+══════════════════════════════ */
+.pdf-print-layout { display: none; }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm 12mm 14mm 12mm;
+  }
+  
+  body {
+    background: #ffffff !important;
+    color: #1C2A3A !important;
+    font-family: 'Tajawal', sans-serif !important;
+    font-size: 9pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* إخفاء واجهة الشاشة العادية */
+  #welcome-screen, #bubbles-host, .site-header, .hero, .motivation, 
+  .filter-bar, .content-wrap, .dev-footer-bar, .toast, .confetti-piece {
+    display: none !important;
+  }
+
+  /* إظهار كود الطباعة المنظم المخصص */
+  .pdf-print-layout {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .pdf-header {
+    width: 100%;
+    border-bottom: 2px solid #D4A017;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    display: table;
+  }
+  .pdf-logo-cell { display: table-cell; width: 50px; vertical-align: middle; }
+  .pdf-logo-box {
+    width: 42px; height: 42px; background: #D4A017; border-radius: 8px;
+    text-align: center; line-height: 42px; font-size: 18pt; font-family: 'Cairo'; font-weight: 900; color: #080C10;
+  }
+  .pdf-title-cell { display: table-cell; vertical-align: middle; padding-right: 10px; }
+  .pdf-main-title { font-size: 13pt; font-family: 'Cairo'; font-weight: 900; color: #0E4D6E; }
+  .pdf-sub-title { font-size: 8.5pt; color: #555; }
+  .pdf-rank-cell { display: table-cell; vertical-align: top; text-align: left; }
+  .pdf-rank-badge {
+    background: #F5E6C4; border: 1px solid #D4A017; color: #7A5C00;
+    padding: 4px 10px; border-radius: 12px; font-size: 8pt; font-weight: 700;
+  }
+
+  .pdf-motivation {
+    background: #F0F7FA; border-right: 4px solid #1B7FAD; border-top: 1px solid #E2E8F0;
+    border-bottom: 1px solid #E2E8F0; border-left: 1px solid #E2E8F0;
+    padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 8.5pt; color: #0E4D6E;
+  }
+
+  .pdf-stats-row {
+    display: table; width: 100%; margin-bottom: 12px; border-spacing: 6px 0;
+  }
+  .pdf-stat-card {
+    display: table-cell; background: #F8FAFC; border: 1px solid #CBD5E1;
+    border-radius: 8px; padding: 6px; text-align: center; width: 20%;
+  }
+  .pdf-stat-card .num { font-size: 13pt; font-family: 'Cairo'; font-weight: 900; color: #D4A017; }
+  .pdf-stat-card .num.blue { color: #1B7FAD; }
+  .pdf-stat-card .num.dark { color: #0E4D6E; }
+  .pdf-stat-card .lbl { font-size: 7.5pt; color: #64748B; }
+
+  .pdf-progress-box {
+    background: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 8px;
+    padding: 6px 12px; margin-bottom: 14px;
+  }
+  .pdf-progress-lbl { display: flex; justify-content: space-between; font-size: 7.5pt; color: #475569; font-weight: 700; margin-bottom: 4px; }
+  .pdf-progress-bar { background: #E2E8F0; height: 8px; border-radius: 4px; overflow: hidden; }
+  .pdf-progress-fill { background: #1B7FAD; height: 100%; }
+
+  .pdf-sec-title {
+    font-size: 10pt; font-family: 'Cairo'; font-weight: 700; color: #0E4D6E;
+    border-bottom: 1.5px solid #CBD5E1; padding-bottom: 4px; margin-bottom: 8px;
+  }
+
+  /* جدول المواد المريح والمسطر */
+  .pdf-table {
+    width: 100%; border-collapse: collapse; margin-bottom: 12px;
+  }
+  .pdf-table thead { display: table-header-group; }
+  .pdf-table tr { page-break-inside: avoid; }
+  .pdf-table th {
+    background: #0E4D6E; color: #ffffff; font-size: 8pt; font-weight: 700;
+    padding: 6px; text-align: right; border: 1px solid #0E4D6E;
+  }
+  .pdf-table td {
+    padding: 5px 6px; font-size: 8pt; border: 1px solid #E2E8F0; vertical-align: middle;
+  }
+  .pdf-table tr:nth-child(even) td { background: #F8FAFC; }
+  .pdf-table tr.done-row td { background: #F0F9FF; }
+
+  .pdf-badge {
+    padding: 1px 5px; border-radius: 3px; font-size: 6.8pt; font-weight: 700; background: #E2E8F0; color: #334155;
+  }
+  .pdf-badge.t-تخصص { background: #FEF3C7; color: #92400E; }
+  .pdf-badge.t-علوم { background: #E0F2FE; color: #075985; }
+  .pdf-badge.t-هندسة { background: #E0E7FF; color: #3730A3; }
+  .pdf-badge.t-معمل { background: #DCFCE7; color: #166534; }
+  .pdf-badge.t-عامة { background: #F1F5F9; color: #475569; }
+
+  .pdf-footer {
+    border-top: 1px solid #E2E8F0; padding-top: 6px; text-align: center;
+    font-size: 7.5pt; color: #64748B; margin-top: 10px; page-break-inside: avoid;
+  }
+  .pdf-footer span { color: #0E4D6E; font-weight: bold; }
+}
+
+@media(max-width:640px){
+  .hero{grid-template-columns:1fr!important;justify-items:center;text-align:center;}
+  .ring-wrap{width:130px;height:130px;margin:0 auto 10px;}
+  .ring-wrap svg{width:130px;height:130px;}
+  .ring-pct{font-size:1.8rem;}
+  .rank-pill{display:none;}
+  .courses-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));}
+  .header-actions{gap:6px;}
+  .btn{padding:6px 12px;font-size:0.75rem;}
+  .dev-footer-bar{font-size:0.75rem;padding:10px 14px;}
+  .stat-card{padding:12px 14px;min-width:90px;}
+  .stat-card .sv{font-size:1.5rem;}
+}
+@media (prefers-reduced-motion: reduce) {
+  .bubble, .confetti-piece { display: none !important; }
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- WELCOME SCREEN -->
+<div id="welcome-screen">
+  <div class="welcome-logo">⛽</div>
+  <div class="welcome-title">بوابة الطالب الأكاديمية</div>
+  <div class="welcome-sub">كلية هندسة النفط والغاز — جامعة الزاوية</div>
+  <div class="welcome-form">
+    <label for="name-input">اسم الطالب</label>
+    <input type="text" id="name-input" placeholder="أدخل اسمك الكامل هنا..." maxlength="60" />
+    <button class="welcome-btn" onclick="enterApp()">ابدأ تتبع تقدمك ←</button>
+    <div class="welcome-note">يتم حفظ بياناتك تلقائياً في المتصفح</div>
+  </div>
+</div>
+
+<div id="bubbles-host"></div>
+
+<!-- APP MAIN INTERFACE -->
+<div id="app">
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo-sm">⛽</div>
+    <div class="header-text">
+      <h1>بوابة الطالب — هندسة النفط والغاز</h1>
+      <div class="student-name">جامعة الزاوية &nbsp;·&nbsp; الطالب: <span id="disp-name">—</span> <button class="btn-edit-name" onclick="editStudentName()" title="تعديل اسم الطالب">✏️ تعديل</button></div>
+    </div>
+    <div class="header-actions">
+      <div class="rank-pill" id="rank-pill">مهندس مستجد 🛠️</div>
+      <button class="btn btn-pdf" onclick="printPDF()">🖨️ سحب PDF / طباعة</button>
+      <button class="btn btn-outline" onclick="resetAll()">إعادة تعيين</button>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="ring-wrap">
+    <svg width="160" height="160" viewBox="0 0 160 160">
+      <defs>
+        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#0E4D6E"/>
+          <stop offset="60%"  stop-color="#1B7FAD"/>
+          <stop offset="100%" stop-color="#D4A017"/>
+        </linearGradient>
+      </defs>
+      <circle class="ring-bg"   cx="80" cy="80" r="70"/>
+      <circle class="ring-fill" cx="80" cy="80" r="70" id="ring-fill"/>
+    </svg>
+    <div class="ring-center">
+      <div class="ring-pct" id="ring-pct">0%</div>
+      <div class="ring-lbl">نسبة الإنجاز</div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="sv" id="s-done-u">0</div>
+        <div class="sl">وحدة منجزة</div>
+      </div>
+      <div class="stat-card silver">
+        <div class="sv">156</div>
+        <div class="sl">إجمالي الوحدات</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="sv" id="s-remain">156</div>
+        <div class="sl">وحدة متبقية</div>
+      </div>
+      <div class="stat-card">
+        <div class="sv" id="s-done-c" style="color:var(--gold-lt)">0</div>
+        <div class="sl">مادة مكتملة</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="sv" id="s-remain-c">57</div>
+        <div class="sl">مادة متبقية</div>
+      </div>
+    </div>
+    <div class="bar-card">
+      <div class="bar-label-row">
+        <span>مسار التخرج</span>
+        <span id="bar-pct-lbl">0 / 156 وحدة</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="bar-fill"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="motivation">
+  <div class="motivation-inner">
+    <div class="motivation-icon" id="mot-icon">🚀</div>
+    <div class="motivation-text" id="mot-text">
+      أهلاً بك! ابدأ بتحديد المواد التي أتممتها للاطلاع على تقدمك نحو التخرج.
+    </div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" data-f="all"     onclick="setFilter('all',this)">جميع المواد</button>
+  <button class="filter-btn"        data-f="done"    onclick="setFilter('done',this)">المواد المنجزة</button>
+  <button class="filter-btn"        data-f="pending" onclick="setFilter('pending',this)">المواد المتبقية</button>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="search-inp" type="text" placeholder="ابحث عن مادة..." oninput="applyFilters()">
+  </div>
+</div>
+
+<div class="content-wrap">
+  <div class="grid-hdr">
+    <span class="grid-hdr-title">المواد الدراسية</span>
+    <span class="grid-hdr-count" id="visible-count">57 مادة</span>
+    <span class="grid-hdr-line"></span>
+    <span style="font-size:.72rem;color:var(--muted);">اضغط على المادة لتحديدها كمنجزة</span>
+  </div>
+  <div class="courses-grid" id="grid"></div>
+</div>
+
+<div class="dev-footer-bar">
+  بوابة الطالب الأكاديمية | تطوير وتصميم <span>المهندس أنس الميساوي</span> © 2026
+</div>
+
+</div>
+
+<!-- 🖨️ PDF PRINT TEMPLATE (حاوية الطباعة الخاصة بالورقة المسطرة والمريحة) -->
+<div class="pdf-print-layout" id="pdf-layout">
+  <div class="pdf-header">
+    <div class="pdf-logo-cell"><div class="pdf-logo-box">⛽</div></div>
+    <div class="pdf-title-cell">
+      <div class="pdf-main-title">بوابة الطالب — هندسة النفط والغاز</div>
+      <div class="pdf-sub-title">جامعة الزاوية &nbsp;•&nbsp; الطالب: <span id="pdf-student-name">—</span></div>
+    </div>
+    <div class="pdf-rank-cell">
+      <div class="pdf-rank-badge" id="pdf-rank-badge">مهندس مستجد 🛠️</div>
+    </div>
+  </div>
+
+  <div class="pdf-motivation" id="pdf-motivation-text">
+    💡 "النجاح هو حصيلة محاولات صغيرة تتكرر كل يوم.. استمر!"
+  </div>
+
+  <div class="pdf-stats-row">
+    <div class="pdf-stat-card"><div class="num dark" id="pdf-done-u">0</div><div class="lbl">وحدة منجزة</div></div>
+    <div class="pdf-stat-card"><div class="num">156</div><div class="lbl">إجمالي الوحدات</div></div>
+    <div class="pdf-stat-card"><div class="num blue" id="pdf-remain-u">156</div><div class="lbl">وحدة متبقية</div></div>
+    <div class="pdf-stat-card"><div class="num dark" id="pdf-done-c">0</div><div class="lbl">مادة مكتملة</div></div>
+    <div class="pdf-stat-card"><div class="num blue" id="pdf-remain-c">57</div><div class="lbl">مادة متبقية</div></div>
+  </div>
+
+  <div class="pdf-progress-box">
+    <div class="pdf-progress-lbl">
+      <span>مسار التخرج الأكاديمي</span>
+      <span id="pdf-pct-lbl">0 / 156 وحدة (0%)</span>
+    </div>
+    <div class="pdf-progress-bar"><div class="pdf-progress-fill" id="pdf-progress-fill" style="width: 0%;"></div></div>
+  </div>
+
+  <div class="pdf-sec-title">📋 سجل التفاصيل الكاملة للمواد والوحدات الدراسية (57 مادة)</div>
+
+  <table class="pdf-table">
+    <thead>
+      <tr>
+        <th style="width: 6%; text-align: center;">#</th>
+        <th style="width: 44%;">اسم المادة</th>
+        <th style="width: 18%; text-align: center;">نوع المادة</th>
+        <th style="width: 16%; text-align: center;">عدد الوحدات</th>
+        <th style="width: 16%; text-align: center;">الحالة</th>
+      </tr>
+    </thead>
+    <tbody id="pdf-table-body">
+      <!-- يتم ملء الأسطر تلقائياً بواسطة JavaScript -->
+    </tbody>
+  </table>
+
+  <div class="pdf-footer">
+    بوابة الطالب الأكاديمية — كلية هندسة النفط والغاز | جامعة الزاوية <br>
+    تطوير وتصميم <span>المهندس أنس الميساوي</span> © 2026
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════
+   DATA (جميع المواد والوحدات كاملة بدون حذف)
+═══════════════════════════════ */
+const courses = [
+  {n:"لغة عربية 1",              u:2, t:"عامة"},
+  {n:"لغة إنجليزية 1",           u:2, t:"عامة"},
+  {n:"رياضيات 1",                u:3, t:"علوم"},
+  {n:"فيزياء 1",                 u:3, t:"علوم"},
+  {n:"كيمياء عامة",              u:3, t:"علوم"},
+  {n:"رسم هندسي",                u:3, t:"هندسة"},
+  {n:"لغة عربية 2",              u:2, t:"عامة"},
+  {n:"لغة إنجليزية 2",           u:2, t:"عامة"},
+  {n:"رياضيات 2",                u:4, t:"علوم"},
+  {n:"كيمياء معمل",              u:1, t:"معمل"},
+  {n:"فيزياء 2",                 u:3, t:"علوم"},
+  {n:"استاتيكا",                 u:3, t:"هندسة"},
+  {n:"خواص مواد",                u:3, t:"هندسة"},
+  {n:"رياضيات 3",                u:3, t:"علوم"},
+  {n:"لغة إنجليزية 3",           u:2, t:"عامة"},
+  {n:"جيولوجيا فيزيائية",        u:3, t:"تخصص"},
+  {n:"كيمياء عضوية",             u:3, t:"علوم"},
+  {n:"كيمياء فيزيائية",          u:3, t:"علوم"},
+  {n:"كتابة التقارير",           u:1, t:"عامة"},
+  {n:"فيزياء معمل",              u:1, t:"معمل"},
+  {n:"رياضيات 4",                u:3, t:"علوم"},
+  {n:"ديناميكا",                 u:3, t:"هندسة"},
+  {n:"برمجة حاسوب",              u:3, t:"هندسة"},
+  {n:"جيولوجيا تركيبية",         u:3, t:"تخصص"},
+  {n:"كيمياء فيزيائية معمل",     u:1, t:"معمل"},
+  {n:"مقدمة هندسة نفط",          u:3, t:"تخصص"},
+  {n:"ديناميكا حرارية",          u:3, t:"هندسة"},
+  {n:"ميكانيكا موائع",           u:3, t:"هندسة"},
+  {n:"معدات حقول النفط",         u:3, t:"تخصص"},
+  {n:"خواص صخور مكامن",          u:3, t:"تخصص"},
+  {n:"إحصاء واحتمالات",          u:3, t:"علوم"},
+  {n:"أسس هندسة كهربائية",       u:3, t:"هندسة"},
+  {n:"أساسيات انتقال الحرارة",   u:3, t:"هندسة"},
+  {n:"خواص موائع مكامن",         u:3, t:"تخصص"},
+  {n:"هندسة حفر",                u:3, t:"تخصص"},
+  {n:"حفر بحري",                 u:2, t:"تخصص"},
+  {n:"معمل صخور مكامن",          u:2, t:"معمل"},
+  {n:"طرق التحليل العددي",       u:3, t:"علوم"},
+  {n:"ثقافة وطنية",              u:2, t:"عامة"},
+  {n:"معمل سوائل حفر",           u:2, t:"معمل"},
+  {n:"سريان الموائع في المكامن", u:3, t:"تخصص"},
+  {n:"سرود آبار",                u:3, t:"تخصص"},
+  {n:"جيولوجيا نفط",             u:3, t:"تخصص"},
+  {n:"استكمال آبار",             u:3, t:"تخصص"},
+  {n:"هندسة مكامن نفطية",        u:3, t:"تخصص"},
+  {n:"تحليل ضغوط الآبار",        u:3, t:"تخصص"},
+  {n:"هندسة إنتاج 1",            u:3, t:"تخصص"},
+  {n:"هندسة غاز طبيعي",          u:3, t:"تخصص"},
+  {n:"اقتصاد نفطي",              u:3, t:"تخصص"},
+  {n:"تقييم مكامن",              u:3, t:"تخصص"},
+  {n:"هندسة إنتاج 2",            u:3, t:"تخصص"},
+  {n:"طرق الاسترداد الإضافي",    u:3, t:"تخصص"},
+  {n:"محاكاة مكامن",             u:4, t:"تخصص"},
+  {n:"تقنيات حقول النفط",        u:3, t:"تخصص"},
+  {n:"الندوة النفطية",           u:2, t:"تخصص"},
+  {n:"مشروع التخرج 🎓",          u:4, t:"تخصص"},
+  {n:"مادة اختيارية",            u:3, t:"عامة"},
+];
+
+const TOTAL = 156;
+const KEY   = 'pet_tracker_v4';
+
+let state    = {};
+let userName = '';
+let curFilter = 'all';
+let curSearch = '';
+
+/* ── UTILITIES & SECURITY ── */
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function normalizeArabic(text) {
+  return (text || '')
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/[\u064B-\u065F]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+/* ── LOAD & SAVE ── */
+function loadData(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw){ const d=JSON.parse(raw); state=d.s||{}; userName=d.name||''; }
+  }catch{}
+}
+function saveData(){
+  try{ localStorage.setItem(KEY, JSON.stringify({s:state, name:userName})); }catch{}
+}
+
+/* ── PROFILE MANAGEMENT ── */
+function editStudentName(){
+  const current = userName || '';
+  const next = prompt('أدخل اسم الطالب الجديد:', current);
+  if (next !== null && next.trim() !== '') {
+    userName = next.trim();
+    saveData();
+    document.getElementById('disp-name').textContent = userName;
+    calculate();
+    showToast('تم تحديث الاسم بنجاح ✓');
+  }
+}
+
+/* ── WELCOME SCREEN ── */
+function enterApp(){
+  const inp = document.getElementById('name-input').value.trim();
+  if(!inp){ document.getElementById('name-input').focus(); return; }
+  userName = inp;
+  saveData();
+  
+  document.getElementById('welcome-screen').classList.add('hide');
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('app').style.opacity = '1';
+
+  setTimeout(()=>{
+    document.getElementById('welcome-screen').style.display='none';
+  },500);
+
+  document.getElementById('disp-name').textContent = userName;
+  calculate();
+}
+
+document.getElementById('name-input').addEventListener('keydown', e=>{
+  if(e.key==='Enter') enterApp();
+});
+
+/* ── BUILD CARDS ── */
+function buildGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  courses.forEach((c,i)=>{
+    const card = document.createElement('div');
+    const isDone = !!state[i];
+    card.className = 'course-card' + (isDone ? ' done' : '');
+    card.dataset.idx = i;
+    card.dataset.name = c.n;
+    card.dataset.type = c.t;
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-pressed', isDone ? 'true' : 'false');
+    card.setAttribute('aria-label', `${c.n}، ${c.t}، ${c.u} وحدات، ${isDone ? 'منجزة' : 'متبقية'}`);
+
+    card.innerHTML = `
+      <span class="ck">✓</span>
+      <span class="ctype">${c.t}</span>
+      <span class="cn">${c.n}</span>
+      <span class="cu">${c.u} ${c.u===1?'وحدة':'وحدات'}</span>
+    `;
+
+    const toggleCourse = () => {
+      const wasDone = !!state[i];
+      state[i] = !state[i];
+      card.classList.toggle('done', state[i]);
+      card.setAttribute('aria-pressed', state[i] ? 'true' : 'false');
+      card.setAttribute('aria-label', `${c.n}، ${c.t}، ${c.u} وحدات، ${state[i] ? 'منجزة' : 'متبقية'}`);
+      saveData();
+      calculate();
+      if(state[i] && !wasDone) celebrate(c.n);
+    };
+
+    card.addEventListener('click', toggleCourse);
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleCourse();
+      }
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+/* ── FILTERING ── */
+function setFilter(f, btn){
+  curFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters(){
+  const rawSearch = (document.getElementById('search-inp').value||'').trim();
+  const normSearch = normalizeArabic(rawSearch);
+  let visible = 0;
+  document.querySelectorAll('.course-card').forEach(card=>{
+    const i   = +card.dataset.idx;
+    const nm  = card.dataset.name;
+    const tp  = card.dataset.type;
+    const done= !!state[i];
+    const matchFilter =
+      curFilter==='all'     ? true :
+      curFilter==='done'    ? done :
+      curFilter==='pending' ? !done : true;
+    const matchSearch = !normSearch || 
+      normalizeArabic(nm).includes(normSearch) || 
+      normalizeArabic(tp).includes(normSearch);
+    const show = matchFilter && matchSearch;
+    card.classList.toggle('hidden', !show);
+    if(show) visible++;
+  });
+  document.getElementById('visible-count').textContent = visible + ' مادة';
+
+  const grid = document.getElementById('grid');
+  let em = grid.querySelector('.empty-state');
+  if(visible===0){
+    if(!em){ em=document.createElement('div'); em.className='empty-state'; grid.appendChild(em); }
+    if(normSearch){
+      em.textContent = 'لا توجد نتائج مطابقة للبحث 🔍';
+    } else if(curFilter==='done'){
+      em.textContent = 'لم تُنجز أي مادة بعد 📝';
+    } else if(curFilter==='pending'){
+      em.textContent = 'أحسنت! أنجزت جميع المواد بنجاح 🎉';
+    } else {
+      em.textContent = 'لا توجد مواد';
+    }
+  } else if(em) em.remove();
+}
+
+/* ── CALCULATIONS & MOTIVATION ── */
+const motivations = [
+  { max:5,   icon:'🚀', msg:'ابدأ بتحديد المواد التي أتممتها — كل وحدة تُقرّبك من التخرج!' },
+  { max:20,  icon:'📘', msg:'بداية موفقة! استمر في تحديد موادك وتابع تقدمك.' },
+  { max:35,  icon:'⚙️', msg:'أنت في مرحلة بناء الأساس — المواد العلمية هي ركيزة مشوارك.' },
+  { max:50,  icon:'⛽', msg:'تجاوزت الربع الأول! أنت على الطريق الصحيح نحو هندسة المكامن.' },
+  { max:65,  icon:'🔩', msg:'أكثر من نصف المشوار خلفك — الآن تبدأ مواد التخصص الفعلية!' },
+  { max:80,  icon:'🛢️', msg:'أداء ممتاز! بدأت تتشكل ملامح المهندس الذي ستكون عليه.' },
+  { max:95,  icon:'🎓', msg:'أنت في المراحل الأخيرة — الخط الفاصل بينك وبين التخرج ضئيل!' },
+  { max:99,  icon:'🏁', msg:'لمسة أخيرة وتعبر الخط! أنجز مشروع التخرج وأغلق الصفحة بتميز.' },
+  { max:100, icon:'🏆', msg:'مبروك! أتممت جميع متطلبات الخطة الدراسية. أنت الآن مهندس نفط بامتياز! 🎉' },
+];
+
+const ranks = [
+  {min:0,  r:"مهندس مستجد 🛠️"},
+  {min:10, r:"طالب منتظم 📐"},
+  {min:25, r:"طالب جاد 📚"},
+  {min:40, r:"مساعد ميداني 👷"},
+  {min:55, r:"مشرف عمليات ⛽"},
+  {min:70, r:"مهندس متقدم 🔩"},
+  {min:85, r:"كبير المهندسين 🎓"},
+  {min:100,r:"المهندس الأسطورة 🏆"},
+];
+
+function calculate(){
+  let doneU=0, doneC=0;
+  courses.forEach((c,i)=>{ if(state[i]){ doneU+=c.u; doneC++; } });
+  const remain = TOTAL - doneU;
+  const remainC = courses.length - doneC;
+  const pct = Math.min(100, Math.round((doneU/TOTAL)*100));
+
+  // Circular ring (radius 70 → circumference = 2πr, computed precisely)
+  const circ = 2*Math.PI*70;
+  const ringFill = document.getElementById('ring-fill');
+  if(ringFill){
+    ringFill.style.strokeDasharray = circ;
+    ringFill.style.strokeDashoffset = circ*(1-pct/100);
+  }
+  document.getElementById('ring-pct').textContent = pct+'%';
+
+  // Stats UI
+  document.getElementById('s-done-u').textContent   = doneU;
+  document.getElementById('s-remain').textContent   = remain;
+  document.getElementById('s-done-c').textContent   = doneC;
+  document.getElementById('s-remain-c').textContent = remainC;
+  document.getElementById('bar-fill').style.width   = pct+'%';
+  document.getElementById('bar-pct-lbl').textContent= doneU+' / '+TOTAL+' وحدة';
+
+  // Rank
+  let rank = ranks[0].r;
+  for(const x of ranks){ if(pct>=x.min) rank=x.r; }
+  document.getElementById('rank-pill').textContent = rank;
+
+  // Motivation text
+  let mot = motivations[0];
+  for(const m of motivations){ if(pct<=m.max){ mot=m; break; } }
+  if(pct===100) mot = motivations[motivations.length-1];
+  document.getElementById('mot-icon').textContent = mot.icon;
+  const fullMotMsg = userName ? `<strong>${escapeHtml(userName)}</strong>، ${mot.msg}` : mot.msg;
+  document.getElementById('mot-text').innerHTML = fullMotMsg;
+
+  // 🖨️ التجهيز التلقائي لورقة الـ PDF
+  document.getElementById('pdf-student-name').textContent = userName || 'طالب هندسة النفط';
+  document.getElementById('pdf-rank-badge').textContent = rank;
+  document.getElementById('pdf-motivation-text').innerHTML = '💡 ' + (userName ? `<strong>${escapeHtml(userName)}</strong>: ` : '') + mot.msg;
+  document.getElementById('pdf-done-u').textContent = doneU;
+  document.getElementById('pdf-remain-u').textContent = remain;
+  document.getElementById('pdf-done-c').textContent = doneC;
+  document.getElementById('pdf-remain-c').textContent = remainC;
+  document.getElementById('pdf-pct-lbl').textContent = `${doneU} / ${TOTAL} وحدة (${pct}%)`;
+  document.getElementById('pdf-progress-fill').style.width = pct + '%';
+
+  applyFilters();
+}
+
+function generatePdfTable(){
+  const pdfTbody = document.getElementById('pdf-table-body');
+  if(!pdfTbody) return;
+  pdfTbody.innerHTML = '';
+  courses.forEach((c, i) => {
+    const isDone = !!state[i];
+    const tr = document.createElement('tr');
+    if(isDone) tr.className = 'done-row';
+    tr.innerHTML = `
+      <td style="text-align: center; color: #64748B;">${i+1}</td>
+      <td><strong>${escapeHtml(c.n)}</strong></td>
+      <td style="text-align: center;"><span class="pdf-badge t-${c.t}">${c.t}</span></td>
+      <td style="text-align: center;">${c.u} ${c.u===1?'وحدة':'وحدات'}</td>
+      <td style="text-align: center;">${isDone ? '<span style="color:#10B981;font-weight:bold;">✓ منجزة</span>' : '<span style="color:#94A3B8;">⏳ متبقية</span>'}</td>
+    `;
+    pdfTbody.appendChild(tr);
+  });
+}
+
+function celebrate(courseName){
+  showToast('✅ أحسنت! تم إنجاز: '+courseName);
+  spawnConfetti();
+}
+
+function spawnConfetti(){
+  const colors=['#D4A017','#1B7FAD','#F5C842','#0E4D6E','#ffffff'];
+  for(let i=0;i<30;i++){
+    const el=document.createElement('div');
+    el.className='confetti-piece';
+    const size=6+Math.random()*8;
+    el.style.cssText=`
+      width:${size}px;height:${size}px;
+      left:${Math.random()*100}vw;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${1.5+Math.random()*1.5}s;
+      animation-delay:${Math.random()*0.4}s;
+      border-radius:${Math.random()>.5?'50%':'2px'};
+    `;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), 3000);
+  }
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+function resetAll(){
+  if(!confirm('هل تريد حذف كل التقدم والبدء من جديد؟')) return;
+  state={};
+  saveData();
+  document.querySelectorAll('.course-card.done').forEach(c=>{
+    c.classList.remove('done');
+    c.setAttribute('aria-pressed', 'false');
+  });
+  calculate();
+  showToast('تمت إعادة التعيين ✓');
+}
+
+/* 🖨️ دالة سحب PDF / الطباعة */
+function printPDF(){
+  calculate();
+  generatePdfTable();
+  window.print();
+}
+
+window.addEventListener('beforeprint', () => {
+  calculate();
+  generatePdfTable();
+});
+
+(function(){
+  const host=document.getElementById('bubbles-host');
+  [12,20,10,28,16,8,22,18,14,26].forEach((s,i)=>{
+    const b=document.createElement('div');
+    b.className='bubble';
+    b.style.cssText=`width:${s}px;height:${s}px;left:${i*10+3}%;animation-duration:${14+i*2.5}s;animation-delay:${i*1.8}s;`;
+    host.appendChild(b);
+  });
+})();
+
+loadData();
+buildGrid();
+
+if(userName){
+  document.getElementById('welcome-screen').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('app').style.opacity='1';
+  document.getElementById('disp-name').textContent = userName;
+  calculate();
+} else {
+  document.getElementById('app').style.opacity='0';
+}
+</script>
+</body>
+</html>
